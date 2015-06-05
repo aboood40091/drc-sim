@@ -3,7 +3,7 @@
 #©2013 Mema Haxx, ©2015 AboodXD
 #Feel free to push a pull-request if you improved it!
 
-import construct
+from construct import *
 import pyaudio
 import select
 import socket
