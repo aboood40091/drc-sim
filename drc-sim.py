@@ -1,3 +1,8 @@
+#drc-sim by Mema Haxx
+#It was modified by AboodXD to work with Python 3.4
+#©2013 Mema Haxx, ©2015 AboodXD
+#Feel free to push a pull-request if you improved it!
+
 import construct
 import pyaudio
 import select
