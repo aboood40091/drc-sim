@@ -83,7 +83,9 @@ class H264Decoder:
         s.got_frame = s.ffi.new('int *')
         s.out_frame = s.ns.avcodec_alloc_frame()
 
-    def __init__(s, in_x, in_y, out_x, out_y):
+    def __init__(s, xxx_todo_changeme, xxx_todo_changeme1):
+        (in_x, in_y) = xxx_todo_changeme
+        (out_x, out_y) = xxx_todo_changeme1
         s.sws_context = None
         s.__init_ffi()
         s.__init_avcodec()
@@ -97,7 +99,9 @@ class H264Decoder:
         s.ns.av_free(s.context)
         s.ns.av_free(s.frame)
 
-    def update_dimensions(s, in_x, in_y, out_x, out_y):
+    def update_dimensions(s, xxx_todo_changeme2, xxx_todo_changeme3):
+        (in_x, in_y) = xxx_todo_changeme2
+        (out_x, out_y) = xxx_todo_changeme3
         s.in_x, s.in_y = in_x, in_y
         s.out_x, s.out_y = out_x, out_y
         
