@@ -3,7 +3,7 @@
 #©2013 Mema Haxx, ©2015 AboodXD
 #Feel free to push a pull-request if you improved it!
 
-from construct import *
+import construct
 import pyaudio
 import select
 import socket
@@ -130,14 +130,14 @@ class ServiceASTRM(ServiceBase):
         if h.packet_type == 0:
             seq_ok = s.update_seq_id(h.seq_id)
             if not seq_ok:
-                print ('astrm bad seq_id')
+                print('astrm bad seq_id')
             if h.fmt != 1 or h.channel != 0:
                 raise Exception('astrm currently only handles 48kHz PCM stereo')
             if len(packet) != 8 + h.payload_size:
                 raise Exception('astrm bad payload_size')
             
             if h.vibrate:
-                print ('*vibrate*')
+                print('*vibrate*')
             
             s.pa_ring[s.pa_rpos] = array.array('H', packet[8:])
             s.pa_rpos += 1
@@ -217,7 +217,7 @@ class ServiceVSTRM(ServiceBase):
         
         # add escape codes
         nals.extend(vstrm[:2])
-        for i in xrange(2, len(vstrm)):
+        for i in range(2, len(vstrm)):
             if vstrm[i] <= 3 and nals[-2] == 0 and nals[-1] == 0:
                 nals.extend([3])
             nals.extend([vstrm[i]])
@@ -249,7 +249,8 @@ class ServiceVSTRM(ServiceBase):
             nals = s.h264_nal_encapsulate(is_idr, s.frame)
             s.decoder.display_frame(nals.tostring())
 
-    def resize_output(s, x, y):
+    def resize_output(s, xxx_todo_changeme):
+        (x, y) = xxx_todo_changeme
         d = s.dimensions['gamepad']
         fit = pygame.Rect((0, 0), d).fit(pygame.display.get_surface().get_rect())
         s.decoder.update_dimensions(d, fit.size)
@@ -311,18 +312,18 @@ class ServiceCMD(ServiceBase):
         s.send_response_cmd0(h, r)
 
     def cmd0(s, h, packet):
-        print ('CMD0:%i:%i') % (h.id_primary, h.id_secondary)
+        print('CMD0:%i:%i' % (h.id_primary, h.id_secondary))
         if h.id_primary not in s.cmd0_handlers or h.id_secondary not in s.cmd0_handlers[h.id_primary]:
-            print ('unhandled'), packet.encode('hex')
+            print('unhandled', packet.encode('hex'))
             return
         s.cmd0_handlers[h.id_primary][h.id_secondary](h, packet)
 
     def cmd1(s, h, packet):
-        print ('CMD1'), packet[8:].encode('hex')
+        print('CMD1', packet[8:].encode('hex'))
         s.send_response(h, '\x00\x16\x00\x19\x9e\x00\x00\x00\x40\x00\x40\x00\x00\x00\x01\xff')
 
     def cmd2(s, h, packet):
-        print ('TIME base {:04x} seconds {:08x}').format(h.JDN_base, h.seconds)
+        print('TIME base {:04x} seconds {:08x}'.format(h.JDN_base, h.seconds))
         s.send_response(h)
 
     def ack(s, h):
@@ -367,7 +368,7 @@ class ServiceCMD(ServiceBase):
 
 class ServiceMSG(ServiceBase):
     def update(s, packet):
-        print ('MSG'), packet.encode('hex')
+        print('MSG', packet.encode('hex'))
 
 class ServiceNOP(ServiceBase):
     def update(s, packet):
@@ -420,7 +421,7 @@ def hid_snd():
     report[0] = hid_seq_id
     # 16bit @ 2
     button_bits = 0
-    for i in xrange(9):
+    for i in range(9):
         if joystick.get_button(i):
             button_bits |= button_mapping[i]
     # hat: (<l/r>, <u/d>) [-1,1]
@@ -437,7 +438,7 @@ def hid_snd():
     # 5: r trigger
     def scale_stick(OldValue, OldMin, OldMax, NewMin, NewMax):
         return int((((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin)
-    for i in xrange(6):
+    for i in range(6):
         if i in (2, 5):
             if joystick.get_axis(i) > 0:
                 button_bits |= trigger_mapping[i]
@@ -469,7 +470,7 @@ def hid_snd():
         y = scale_stick(point[1], 0, screen_y, 200, 3800)
         z1 = 2000
         
-        for i in xrange(10):
+        for i in range(10):
             report[18 + i * 2 + 0] = 0x80 | x
             report[18 + i * 2 + 1] = 0x80 | y
         
@@ -492,7 +493,7 @@ def hid_snd():
     report[18 + 9 * 2 + 1] |= ((byte_19 & 2) | 4) << 12
     
     # 8bit @ 80
-    for i in xrange(9,11):
+    for i in range(9,11):
         if joystick.get_button(i):
             report[40] |= button_mapping[i]
     
@@ -517,7 +518,7 @@ while not done:
         elif event.type == EVT_SEND_HID:
             hid_snd()
     
-    rlist, wlist, xlist = select.select(service_handlers.keys(), (), (), 1)
+    rlist, wlist, xlist = select.select(list(service_handlers.keys()), (), (), 1)
     
     if not rlist:
         continue
@@ -525,7 +526,7 @@ while not done:
     for sock in rlist:
         service_handlers[sock].update(sock.recvfrom(2048)[0])
 
-for s in service_handlers.itervalues():
+for s in service_handlers.values():
     s.close()
 
 pygame.quit()
