@@ -10,15 +10,15 @@ class H264Decoder:
         s.ffi.cdef('''
             // AVCODEC
             
-            enum PixelFormat { PIX_FMT_YUV420P, PIX_FMT_RGB24, ... };
+            enum AVPixelFormat { AV_PIX_FMT_YUV420P, AV_PIX_FMT_RGB24, ... };
             
             void avcodec_register_all(void);
             
             struct AVPacket { ...; uint8_t *data; int size; ...; };
             void av_init_packet(struct AVPacket *pkt);
             
-            enum CodecID { CODEC_ID_H264, ... };
-            struct AVCodec *avcodec_find_decoder(enum CodecID id);
+            enum AVCodecID { AV_CODEC_ID_H264, ... };
+            struct AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
             struct AVCodecContext *avcodec_alloc_context3(struct AVCodec *codec);
             
@@ -26,7 +26,7 @@ class H264Decoder:
                             struct AVDictionary **options);
             
             struct AVFrame { uint8_t *data[8]; int linesize[8]; ...; int key_frame; ...; };
-            struct AVFrame *avcodec_alloc_frame(void);
+            struct AVFrame *av_frame_alloc(void);
             
             int avcodec_decode_video2(struct AVCodecContext *avctx, struct AVFrame *picture,
                                     int *got_picture_ptr, struct AVPacket *avpkt);
@@ -35,7 +35,7 @@ class H264Decoder:
             
             void av_free(void *ptr);
             
-            int avpicture_get_size(enum PixelFormat pix_fmt, int width, int height);
+            int avpicture_get_size(enum AVPixelFormat pix_fmt, int width, int height);
             
             int avpicture_fill(struct AVPicture *picture, uint8_t *ptr,
                             int pix_fmt, int width, int height);
@@ -44,8 +44,8 @@ class H264Decoder:
             
             #define SWS_BILINEAR ...
             #define SWS_FAST_BILINEAR ...
-            struct SwsContext *sws_getContext(int srcW, int srcH, enum PixelFormat srcFormat,
-                                            int dstW, int dstH, enum PixelFormat dstFormat,
+            struct SwsContext *sws_getContext(int srcW, int srcH, enum AVPixelFormat srcFormat,
+                                            int dstW, int dstH, enum AVPixelFormat dstFormat,
                                             int flags, struct SwsFilter *srcFilter,
                                             struct SwsFilter *dstFilter, const double *param);
             
@@ -69,7 +69,7 @@ class H264Decoder:
         s.av_packet = s.ffi.new('struct AVPacket *')
         s.ns.av_init_packet(s.av_packet)
 
-        s.codec = s.ns.avcodec_find_decoder(s.ns.CODEC_ID_H264)
+        s.codec = s.ns.avcodec_find_decoder(s.ns.AV_CODEC_ID_H264)
         if not s.codec:
             raise Exception('avcodec_alloc_context3')
         s.context = s.ns.avcodec_alloc_context3(s.codec)
@@ -77,11 +77,11 @@ class H264Decoder:
             raise Exception('avcodec_alloc_context3')
         if s.ns.avcodec_open2(s.context, s.codec, s.ffi.NULL) < 0:
             raise Exception('avcodec_open2')
-        s.frame = s.ns.avcodec_alloc_frame()
+        s.frame = s.ns.av_frame_alloc()
         if not s.frame:
-            raise Exception('avcodec_alloc_frame')
+            raise Exception('av_frame_alloc')
         s.got_frame = s.ffi.new('int *')
-        s.out_frame = s.ns.avcodec_alloc_frame()
+        s.out_frame = s.ns.av_frame_alloc()
 
     def __init__(s, xxx_todo_changeme, xxx_todo_changeme1):
         (in_x, in_y) = xxx_todo_changeme
@@ -108,18 +108,18 @@ class H264Decoder:
         if s.sws_context != None:
             s.ns.sws_freeContext(s.sws_context)
         s.sws_context = s.ns.sws_getContext(
-            s.in_x, s.in_y, s.ns.PIX_FMT_YUV420P,
-            s.out_x, s.out_y, s.ns.PIX_FMT_RGB24,
+            s.in_x, s.in_y, s.ns.AV_PIX_FMT_YUV420P,
+            s.out_x, s.out_y, s.ns.AV_PIX_FMT_RGB24,
             s.ns.SWS_FAST_BILINEAR,
             s.ffi.NULL,
             s.ffi.NULL, s.ffi.NULL)
         
-        bytes_req = s.ns.avpicture_get_size(s.ns.PIX_FMT_RGB24, s.out_x, s.out_y)
+        bytes_req = s.ns.avpicture_get_size(s.ns.AV_PIX_FMT_RGB24, s.out_x, s.out_y)
         s.out_buffer = s.ffi.new('uint8_t [%i]' % bytes_req)
         s.ns.avpicture_fill(
             s.ffi.cast('struct AVPicture *', s.out_frame),
             s.out_buffer,
-            s.ns.PIX_FMT_RGB24,
+            s.ns.AV_PIX_FMT_RGB24,
             s.out_x, s.out_y)
 
     def display_frame(s, encoded_nalu):
